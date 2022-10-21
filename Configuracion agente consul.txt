@@ -1,0 +1,74 @@
+
+cd C:\Users\Juan Velez\Desktop\JUANVE07\UAO\ESPECIALIZACION_IA\Computacion\microproyecto
+
+vagrant status
+vagrant up --provision
+vagrant status
+
+vagrant ssh servidor1
+
+sudo consul agent -ui -server -bootstrap-expect=1 -client=0.0.0.0 \-data-dir=\tmp\consul -node=servidor1 -bind=192.168.100.8 \-enable-script-checks=true -config-dir=/etc/consul.d
+
+
+vagrant@servidor1:~$ consul agent \
+  -node=servidor1 \
+  -bind=192.168.100.8 \
+  -enable-script-checks=true \
+  -data-dir=/tmp/consul \
+  -config-dir=/etc/consul.d
+
+vagrant@servidor2:~$ consul agent \
+  -node=servidor2 \
+  -bind=192.168.100.9 \
+  -enable-script-checks=true \
+  -data-dir=/tmp/consul \
+  -config-dir=/etc/consul.d
+
+http://192.168.100.8:8500/ui/dc1/services
+
+consul members
+consul join 192.168.100.9
+consul members
+
+vagrant ssh haproxy1
+
+sudo systemctl start haproxy
+sudo systemctl restart haproxy
+sudo systemctl status haproxy
+
+http://192.168.100.7/haproxy?stats
+
+vagrant ssh servidor1
+cd consulService/app/
+node index.js 3000
+
+vagrant ssh servidor2
+cd consulService/app/
+node index.js 3001
+
+curl 192.168.100.7
+http://192.168.100.7/
+
+artillery run -e staging load.yml
+artillery quick --count 10 -n 20 http://192.168.100.7
+
+Apaga servidor 
+
+vagrant halt servidor1 
+
+vagrant up servidor1 
+
+
+>> Ruta para revisar el archivo de configuaricion Haproxy
+sudo vim /etc/haproxy/haproxy.cfg
+
+
+-server = indica cual es el sevidor  (este nodo puede visualizar la info de consul)
+-bootstrap-expect=1 = si no se usa no se habilitan las demas lineas (members and join, unir al cluster)
+                                    encargado de hacer la union o agrupacion  de los servidores 
+-client=0.0.0.0 = para que se pueda abrir desde su navegador local
+-data-dir=\tmp\consul = (info por defecto)
+-node=servidor1 =nombre del nodo 
+-bind=192.168.100.8 = direccion ip del servidor
+-enable-script-checks=true = sirve para checkear los script que salgan del consul (info por defecto)
+-config-dir=/etc/consul.d = directorio donde va a estar la configuracion dle consul
